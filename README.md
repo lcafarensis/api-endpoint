@@ -24,7 +24,7 @@ A PHP-based API for handling fund transfers between banking institutions using C
 
 1. **Clone the repository**
    ```bash
-   git clone <repository-url>
+   git clone https://github.com/lcafarensis/api-endpoint
    cd API_connection
    ```
 
