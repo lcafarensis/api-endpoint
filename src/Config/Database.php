@@ -78,5 +78,34 @@ class Database
                 FOREIGN KEY (transfer_id) REFERENCES transfers(id)
             )
         ");
+
+        // Create hambit_orders table
+        $connection->executeStatement("
+            CREATE TABLE IF NOT EXISTS hambit_orders (
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                order_id VARCHAR(255) UNIQUE NOT NULL,
+                external_order_id VARCHAR(255) UNIQUE NOT NULL,
+                chain_type VARCHAR(10) NOT NULL,
+                token_type VARCHAR(10) NOT NULL,
+                currency_type VARCHAR(3) NOT NULL,
+                pay_type VARCHAR(20) NOT NULL,
+                token_amount DECIMAL(20,8) NOT NULL,
+                currency_amount DECIMAL(15,2),
+                exchange_price DECIMAL(15,8),
+                order_fee DECIMAL(15,8),
+                status ENUM('pending', 'processing', 'completed', 'failed', 'cancelled') DEFAULT 'pending',
+                address_to VARCHAR(255),
+                address_from VARCHAR(255),
+                remark TEXT,
+                cashier_url VARCHAR(500),
+                callback_data JSON,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+                INDEX idx_order_id (order_id),
+                INDEX idx_external_order_id (external_order_id),
+                INDEX idx_status (status),
+                INDEX idx_created_at (created_at)
+            )
+        ");
     }
 } 

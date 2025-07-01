@@ -6,10 +6,12 @@ A PHP-based API for handling fund transfers between banking institutions using C
 
 - **Secure API Authentication** using API keys
 - **External Bank Integration** with BRI API
+- **Crypto-Fiat Exchange Integration** with [Hambit Ramp API](https://docs.hambit.co/ramp/api-integration-1.html#inr)
 - **Transfer Status Tracking** with real-time updates
 - **Payout Management** for crypto and cash transfers
 - **Comprehensive Logging** for audit trails
 - **Database Integration** with MySQL/PostgreSQL support
+- **Webhook Support** for real-time notifications
 
 ## Requirements
 
@@ -131,6 +133,97 @@ GET /health
 GET /api/validate-credentials
 ```
 
+### Hambit Crypto-Fiat Exchange
+
+#### Create Fiat-to-Crypto Order
+```http
+POST /api/hambit/fiat-to-crypto
+x-api-key: YOUR_API_KEY
+Content-Type: application/json
+
+{
+    "externalOrderId": "20250513184347329830",
+    "chainType": "BSC",
+    "tokenType": "USDT",
+    "addressTo": "0xa8666442fA7583F783a169CC9F3333333360295E8",
+    "tokenAmount": "1",
+    "currencyType": "INR",
+    "payType": "BANK",
+    "remark": "test",
+    "notifyUrl": "https://your-callback-url.com/webhook"
+}
+```
+
+#### Create Crypto-to-Fiat Order
+```http
+POST /api/hambit/crypto-to-fiat
+x-api-key: YOUR_API_KEY
+Content-Type: application/json
+
+{
+    "externalOrderId": "20250513192309317184",
+    "chainType": "BSC",
+    "tokenType": "USDT",
+    "addressFrom": "0xa8666442fA7583F783a169CC9F5449333333395E8",
+    "tokenAmount": "10.214234221423422312",
+    "currencyType": "INR",
+    "payType": "BANK",
+    "remark": "test",
+    "notifyUrl": "https://your-callback-url.com/webhook"
+}
+```
+
+#### Get Order Details
+```http
+GET /api/hambit/order/{order_id}
+x-api-key: YOUR_API_KEY
+```
+
+#### Get Order List
+```http
+GET /api/hambit/orders?page=1&size=10&status=completed
+x-api-key: YOUR_API_KEY
+```
+
+#### Get Quotes
+```http
+POST /api/hambit/quotes
+x-api-key: YOUR_API_KEY
+Content-Type: application/json
+
+{
+    "chainType": "BSC",
+    "tokenType": "USDT",
+    "currencyType": "INR",
+    "tokenAmount": "1"
+}
+```
+
+#### Get Supported Currencies
+```http
+GET /api/hambit/currencies
+x-api-key: YOUR_API_KEY
+```
+
+#### Validate Hambit Credentials
+```http
+GET /api/hambit/validate-credentials
+x-api-key: YOUR_API_KEY
+```
+
+#### Hambit Callback Webhook
+```http
+POST /api/hambit/callback
+Content-Type: application/json
+
+{
+    "orderId": "OEXCHEXCH202505131043481747133028307HAMBIT-U0000000401298824",
+    "externalOrderId": "20250513184347329830",
+    "status": "completed",
+    "data": {...}
+}
+```
+
 ## Example Usage
 
 ### Using cURL
@@ -157,6 +250,33 @@ curl -X POST http://localhost:8000/api/transfer/initiate \
     "sending_currency": "EUR",
     "receiving_currency": "EUR",
     "description": "Your transaction is successful"
+  }'
+
+# Create fiat-to-crypto order (INR to USDT)
+curl -X POST http://localhost:8000/api/hambit/fiat-to-crypto \
+  -H "x-api-key: API_1234567890ABCDEF" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "externalOrderId": "TEST_1234567890",
+    "chainType": "BSC",
+    "tokenType": "USDT",
+    "addressTo": "0xa8666442fA7583F783a169CC9F3333333360295E8",
+    "tokenAmount": "1",
+    "currencyType": "INR",
+    "payType": "BANK",
+    "remark": "Test order",
+    "notifyUrl": "https://your-callback-url.com/webhook"
+  }'
+
+# Get quotes for VND to USDT
+curl -X POST http://localhost:8000/api/hambit/quotes \
+  -H "x-api-key: API_1234567890ABCDEF" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "chainType": "BSC",
+    "tokenType": "USDT",
+    "currencyType": "VND",
+    "tokenAmount": "1"
   }'
 ```
 
@@ -235,10 +355,53 @@ if ($result['success']) {
 - `created_at` - Creation timestamp
 - `updated_at` - Last update timestamp
 
+### Hambit Orders Table
+- `id` - Primary key
+- `order_id` - Hambit order ID
+- `external_order_id` - External order ID
+- `chain_type` - Blockchain type (BSC)
+- `token_type` - Token type (USDT)
+- `currency_type` - Fiat currency type (INR, BRL, MXN, VND)
+- `pay_type` - Payment type (BANK, PIX, etc.)
+- `token_amount` - Token amount
+- `currency_amount` - Fiat currency amount
+- `exchange_price` - Exchange rate
+- `order_fee` - Order fee
+- `status` - Order status (pending/processing/completed/failed/cancelled)
+- `address_to` - Recipient wallet address
+- `address_from` - Sender wallet address
+- `remark` - Order remarks
+- `cashier_url` - Cashier URL
+- `callback_data` - Callback data from Hambit
+- `created_at` - Creation timestamp
+- `updated_at` - Last update timestamp
+
 ## Payout Timeframes
 
 - **Crypto Wallets**: 4-24 hours
 - **Cash Transfers**: 72 hours
+
+## Supported Currencies (Hambit)
+
+### INR (India)
+- **Payment Methods**: BANK
+- **Blockchain**: BSC
+- **Token**: USDT
+
+### BRL (Brazil)
+- **Payment Methods**: PIX
+- **Blockchain**: BSC
+- **Token**: USDT
+
+### MXN (Mexico)
+- **Payment Methods**: CASH, PAYCASHRECURRENT, QRIS
+- **Blockchain**: BSC
+- **Token**: USDT
+
+### VND (Vietnam)
+- **Payment Methods**: BANK, BANK_SCAN_CODE, CARD_TO_CARD, MOMO, ZALO_PAY, VIETTEL_MONEY
+- **Blockchain**: BSC
+- **Token**: USDT
 
 ## Error Handling
 

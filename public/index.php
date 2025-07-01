@@ -6,6 +6,7 @@ use App\Middleware\CorsMiddleware;
 use App\Middleware\AuthenticationMiddleware;
 use App\Routes\TransferRoutes;
 use App\Routes\AuthRoutes;
+use App\Routes\HambitRoutes;
 use App\Config\Database;
 use Dotenv\Dotenv;
 
@@ -42,6 +43,7 @@ $app->addErrorMiddleware(true, true, true);
 // Register routes
 TransferRoutes::register($app);
 AuthRoutes::register($app);
+HambitRoutes::register($app);
 
 // Health check endpoint
 $app->get('/health', function ($request, $response) {
