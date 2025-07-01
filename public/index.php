@@ -7,6 +7,7 @@ use App\Middleware\AuthenticationMiddleware;
 use App\Routes\TransferRoutes;
 use App\Routes\AuthRoutes;
 use App\Routes\HambitRoutes;
+use App\Routes\BisonBankRoutes;
 use App\Config\Database;
 use Dotenv\Dotenv;
 
@@ -44,6 +45,7 @@ $app->addErrorMiddleware(true, true, true);
 TransferRoutes::register($app);
 AuthRoutes::register($app);
 HambitRoutes::register($app);
+BisonBankRoutes::register($app);
 
 // Health check endpoint
 $app->get('/health', function ($request, $response) {

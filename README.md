@@ -7,6 +7,7 @@ A PHP-based API for handling fund transfers between banking institutions using C
 - **Secure API Authentication** using API keys
 - **External Bank Integration** with BRI API
 - **Crypto-Fiat Exchange Integration** with [Hambit Ramp API](https://docs.hambit.co/ramp/api-integration-1.html#inr)
+- **Banking Integration** with [Bison Bank API](https://portal.bisonbank.com/)
 - **Transfer Status Tracking** with real-time updates
 - **Payout Management** for crypto and cash transfers
 - **Comprehensive Logging** for audit trails
@@ -224,6 +225,86 @@ Content-Type: application/json
 }
 ```
 
+### Bison Bank Integration
+
+#### Get Supported Features
+```http
+GET /api/bison-bank/features
+x-api-key: YOUR_API_KEY
+```
+
+#### Get Account Balance
+```http
+GET /api/bison-bank/accounts/{account_id}/balance
+x-api-key: YOUR_API_KEY
+```
+
+#### Get Account Details
+```http
+GET /api/bison-bank/accounts/{account_id}/details
+x-api-key: YOUR_API_KEY
+```
+
+#### Get Account Transactions
+```http
+GET /api/bison-bank/accounts/{account_id}/transactions?page=1&size=10&startDate=2024-01-01&endDate=2024-12-31
+x-api-key: YOUR_API_KEY
+```
+
+#### Create Domestic Transfer
+```http
+POST /api/bison-bank/transfers/domestic
+x-api-key: YOUR_API_KEY
+Content-Type: application/json
+
+{
+    "sourceAccount": "ACCOUNT123",
+    "destinationIban": "PT50003506510000000000033",
+    "destinationName": "John Doe",
+    "amount": 100.00,
+    "currency": "EUR",
+    "description": "Payment for services",
+    "reference": "TRANSFER-123",
+    "priority": "NORMAL"
+}
+```
+
+#### Create International Transfer (SWIFT)
+```http
+POST /api/bison-bank/transfers/international
+x-api-key: YOUR_API_KEY
+Content-Type: application/json
+
+{
+    "sourceAccount": "ACCOUNT123",
+    "swiftCode": "CHASUS33",
+    "destinationIban": "US12345678901234567890",
+    "destinationName": "Jane Smith",
+    "destinationAddress": "123 Main St",
+    "destinationCity": "New York",
+    "destinationCountry": "US",
+    "bankName": "Chase Bank",
+    "bankAddress": "456 Wall Street",
+    "amount": 500.00,
+    "currency": "USD",
+    "reference": "INT-TRANSFER-123",
+    "priority": "NORMAL",
+    "charges": "SHA"
+}
+```
+
+#### Get Transfer Status
+```http
+GET /api/bison-bank/transfers/{transfer_id}
+x-api-key: YOUR_API_KEY
+```
+
+#### Get Transfer List
+```http
+GET /api/bison-bank/transfers?page=1&size=10&status=PENDING&startDate=2024-01-01&endDate=2024-12-31
+x-api-key: YOUR_API_KEY
+```
+
 ## Example Usage
 
 ### Using cURL
@@ -278,7 +359,46 @@ curl -X POST http://localhost:8000/api/hambit/quotes \
     "currencyType": "VND",
     "tokenAmount": "1"
   }'
-```
+
+# Get Bison Bank account balance
+curl -X GET http://localhost:8000/api/bison-bank/accounts/ACCOUNT123/balance \
+  -H "x-api-key: API_1234567890ABCDEF"
+
+# Create domestic transfer via Bison Bank
+curl -X POST http://localhost:8000/api/bison-bank/transfers/domestic \
+  -H "x-api-key: API_1234567890ABCDEF" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "sourceAccount": "ACCOUNT123",
+    "destinationIban": "PT50003506510000000000033",
+    "destinationName": "John Doe",
+    "amount": 100.00,
+    "currency": "EUR",
+    "description": "Payment for services",
+    "reference": "TRANSFER-123",
+    "priority": "NORMAL"
+  }'
+
+# Create international transfer via Bison Bank
+curl -X POST http://localhost:8000/api/bison-bank/transfers/international \
+  -H "x-api-key: API_1234567890ABCDEF" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "sourceAccount": "ACCOUNT123",
+    "swiftCode": "CHASUS33",
+    "destinationIban": "US12345678901234567890",
+    "destinationName": "Jane Smith",
+    "destinationAddress": "123 Main St",
+    "destinationCity": "New York",
+    "destinationCountry": "US",
+    "bankName": "Chase Bank",
+    "bankAddress": "456 Wall Street",
+    "amount": 500.00,
+    "currency": "USD",
+    "reference": "INT-TRANSFER-123",
+    "priority": "NORMAL",
+    "charges": "SHA"
+  }'
 
 ### Using PHP
 
@@ -402,6 +522,31 @@ if ($result['success']) {
 - **Payment Methods**: BANK, BANK_SCAN_CODE, CARD_TO_CARD, MOMO, ZALO_PAY, VIETTEL_MONEY
 - **Blockchain**: BSC
 - **Token**: USDT
+
+## Supported Features (Bison Bank)
+
+### Currencies
+- **EUR** - Euro
+- **USD** - US Dollar
+- **GBP** - British Pound
+- **CHF** - Swiss Franc
+- **JPY** - Japanese Yen
+- **CAD** - Canadian Dollar
+- **AUD** - Australian Dollar
+- **NZD** - New Zealand Dollar
+
+### Transfer Types
+- **DOMESTIC** - Domestic transfers within the same country
+- **INTERNATIONAL** - International transfers (SWIFT)
+
+### Priorities
+- **NORMAL** - Standard processing time
+- **URGENT** - Expedited processing
+
+### Charges
+- **SHA** - Shared charges (default)
+- **OUR** - All charges paid by sender
+- **BEN** - All charges paid by beneficiary
 
 ## Error Handling
 
